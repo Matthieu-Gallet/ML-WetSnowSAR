@@ -1,0 +1,66 @@
+seed : 42
+nsplit : 4
+mxtest : 100000
+mxtrain : 100000
+balanced : True
+out_dir : "../results/comp_stats"
+data_path : "../dataset_/dataset_A_HD16_TN0HS40_LOG/final_E4/"
+ref_path : "" #"../dataset_/dataset_R9/final_E4/"
+bands_max :
+    - 0 
+    - 1
+    # - 2
+    # - 3
+    # - 4
+    # - 5
+    - 6 
+    - 7
+    # - 8
+    
+    
+import : 
+    - "from sklearn.svm import SVC"
+    - "from class_stats_SAR import *"
+    - "from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis"
+    - "from sklearn.neighbors import KNeighborsClassifier"
+    - "from sklearn.ensemble import AdaBoostClassifier,RandomForestClassifier"
+    - "from sklearn.tree import DecisionTreeClassifier"
+    - "from sklearn.gaussian_process import GaussianProcessClassifier"
+    - "from sklearn.linear_model import LogisticRegression"
+    - "from sklearn.neural_network import MLPClassifier"
+    - "from class_covariance import *"
+
+name_pip: 
+    - "KNN_direct_mean"
+    - "KNN_direct_meanstd"
+    - "KNN_direct_meanstdskew"
+    - "KNN_direct_meanstdskewkurt"
+
+
+pipeline:
+# KNN 
+    - - - "Stats_SAR"
+        - type_stats: "mean"
+      - - "KNeighborsClassifier"
+        - n_neighbors: 50
+        - n_jobs: -1
+
+    - - - "Stats_SAR"
+        - type_stats: "std"
+      - - "KNeighborsClassifier"
+        - n_neighbors: 50
+        - n_jobs: -1
+
+    - - - "Stats_SAR"
+        - type_stats: "skew"
+      - - "KNeighborsClassifier"
+        - n_neighbors: 50
+        - n_jobs: -1
+    
+    - - - "Stats_SAR"
+        - type_stats: "kurtosis"
+      - - "KNeighborsClassifier"
+        - n_neighbors: 50
+        - n_jobs: -1
+
+    

@@ -1,0 +1,146 @@
+seed : 42
+nsplit : 4
+mxtest : 3000
+mxtrain : 7500
+balanced : True 
+out_dir : "../results/"
+data_path : "../dataset_/dataset_D9/final_E4/"
+ref_path : "../dataset_/dataset_R9/final_E4/"
+bands_max :
+    - 0 
+    - 1
+    - 2
+
+
+import : 
+    - "from sklearn.svm import SVC"
+    - "from sklearn.neighbors import KNeighborsClassifier"
+    - "from sklearn.ensemble import AdaBoostClassifier,RandomForestClassifier"
+    - "from sklearn.tree import DecisionTreeClassifier"
+    - "from sklearn.gaussian_process import GaussianProcessClassifier"
+    - "from sklearn.linear_model import LogisticRegression"
+    - "from pyriemann.tangentspace import TangentSpace"
+    - "from sklearn.neural_network import MLPClassifier"
+    - "from class_covariance import *"
+
+name_pip: 
+    - "SVM_lin_euclid"
+    - "SVM_lin_tangent"
+    
+    - "SVM_rbf_euclid"
+    - "SVM_rbf_tangent"
+
+    - "LogisticR_euclid"
+    - "LogisticR_tangent"
+
+    - "AdaBoost_euclid"
+    - "AdaBoost_tangent"
+    
+    - "RandomForest_euclid"
+    - "RandomForest_tangent"
+
+    - "GaussianProcess_euclid"
+    - "GaussianProcess_tangent"
+
+    - "MLP_euclid"
+    - "MLP_tangent"
+
+pipeline:
+#SVC_linear
+    - - - "Covariance_MultiScale"
+        - methode: "ShrunkCovariance"
+      - - "Vector_CovarianceEuclid"
+      - - "SVC"
+        - kernel: "linear"
+        - probability: 1
+
+    - - - "Covariance_MultiScale"
+        - methode: "ShrunkCovariance"
+      - - "TangentSpace"
+      - - "SVC"
+        - kernel: "linear"
+        - probability: 1
+
+#SVC_RBF
+    - - - "Covariance_MultiScale"
+        - methode: "ShrunkCovariance"
+      - - "Vector_CovarianceEuclid"
+      - - "SVC"
+        - kernel: "rbf"
+        - gamma: 0.005
+        - C: 1000
+        - probability: 1
+
+    - - - "Covariance_MultiScale"
+        - methode: "ShrunkCovariance"
+      - - "TangentSpace"
+      - - "SVC"
+        - kernel: "rbf"
+        - gamma: 0.005
+        - C: 1000
+        - probability: 1
+
+#LogisticRegression
+    - - - "Covariance_MultiScale"
+        - methode: "ShrunkCovariance"
+      - - "Vector_CovarianceEuclid"
+      - - "LogisticRegression"
+
+    - - - "Covariance_MultiScale"
+        - methode: "ShrunkCovariance"
+      - - "TangentSpace"
+      - - "LogisticRegression"
+
+#AdaBoostClassifier
+    - - - "Covariance_MultiScale"
+        - methode: "ShrunkCovariance"
+      - - "Vector_CovarianceEuclid"
+      - - "AdaBoostClassifier"
+        - n_estimators: 400
+
+    - - - "Covariance_MultiScale"
+        - methode: "ShrunkCovariance"
+      - - "TangentSpace"
+      - - "AdaBoostClassifier"
+        - n_estimators: 400
+
+#RandomForestClassifier
+    - - - "Covariance_MultiScale"
+        - methode: "ShrunkCovariance"
+      - - "Vector_CovarianceEuclid"
+      - - "RandomForestClassifier"
+        - n_estimators: 400
+
+    - - - "Covariance_MultiScale"
+        - methode: "ShrunkCovariance"
+      - - "TangentSpace"
+      - - "RandomForestClassifier"
+        - n_estimators: 400
+
+#GaussianProcessClassifier
+    - - - "Covariance_MultiScale"
+        - methode: "ShrunkCovariance"
+      - - "Vector_CovarianceEuclid"
+      - - "GaussianProcessClassifier"
+
+    - - - "Covariance_MultiScale"
+        - methode: "ShrunkCovariance"
+      - - "TangentSpace"
+      - - "GaussianProcessClassifier"
+
+#MLPClassifier
+    - - - "Covariance_MultiScale"
+        - methode: "ShrunkCovariance"
+      - - "Vector_CovarianceEuclid"
+      - - "MLPClassifier"
+        - alpha: 0.01
+        - max_iter: 1000
+
+    - - - "Covariance_MultiScale"
+        - methode: "ShrunkCovariance"
+      - - "TangentSpace"
+      - - "MLPClassifier"
+        - alpha: 0.01
+        - max_iter: 1000
+
+
