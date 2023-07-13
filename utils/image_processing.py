@@ -18,6 +18,7 @@ def pad_image(image, window_size):
     numpy array
         Padded image
     """
+
     height, width, _ = image.shape
 
     pad_height = (window_size - (height % window_size)) % window_size
@@ -150,6 +151,38 @@ class Patch_extractor:
 
     def reconstruct(self, data):
         return reconstruct_image_from_data(data, self.positions_, self.image_size)
+
+
+def scale_data(img, axes=None, no_data=-999):
+    """scale data between 0 and 1
+
+    Parameters
+    ----------
+    img : np.array
+        image to scale of shape (..., C), where C is the number of channels
+        must the last dimension
+    axes : list, optional
+        axes to use for scaling, by default None
+        None means all axes except the last one (channels) is used
+    no_data : int, optional
+        value to ignore, by default -999
+        and replace by np.nan, it should be the minimum value of the image
+
+    Returns
+    -------
+    np.array
+        scaled image
+    """
+
+    if np.nanmin(img) == no_data:
+        img[img == no_data] = np.nan
+    if axes is None:
+        axes = tuple(range(img.ndim - 1))
+    min_ = np.nanmin(img, axis=axes, keepdims=True)
+    max_ = np.nanmax(img, axis=axes, keepdims=True)
+    scale = max_ - min_
+    out = (img - min_) / scale
+    return out
 
 
 # TODO : test

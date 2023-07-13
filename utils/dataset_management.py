@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.pipeline import Pipeline
 
 
 def random_shuffle(X, y, rng=-1):
@@ -152,3 +153,57 @@ class BFold:
             idx_train = np.concatenate([idx_minority, idx_majority_balanced])
             self.rng.shuffle(idx_train)
             yield idx_train
+
+
+def parser_pipeline(dict_parameter, idx):
+    """Parse a dictionary to create a pipeline of estimators
+    The dictionary must have the following structure::
+    {
+        "import": [
+            "from sklearn.preprocessing import StandardScaler",
+            "from sklearn.decomposition import PCA",
+            "from sklearn.svm import SVC",
+        ],
+        "pipeline": [
+            [
+                ["StandardScaler", {"with_mean": False, "with_std": False}],
+                ["PCA", {"n_components": 0.95}],
+                ["SVC", {"kernel": "rbf", "C": 10, "gamma": 0.01}],
+            ]
+        ],
+    }
+
+    Parameters
+    ----------
+    dict_parameter : dict
+        Dictionary containing the pipeline
+
+    idx : int
+        Index of the pipeline to use in case of multiple pipelines
+        analysis
+
+    Returns
+    -------
+    sklearn.pipeline.Pipeline
+        Pipeline of estimators
+    """
+
+    for import_lib in dict_parameter["import"]:
+        exec(import_lib)
+    pipe = dict_parameter["pipeline"][idx]
+
+    step = []
+    for i in range(len(pipe)):
+        name_methode = pipe[i][0]
+        estim = locals()[name_methode]()
+
+        if len(pipe[i]) > 1:
+            [
+                [
+                    setattr(estim, param, pipe[i][g][param])
+                    for param in pipe[i][g].keys()
+                ]
+                for g in range(1, len(pipe[i]))
+            ]
+        step.append((name_methode, estim))
+    return Pipeline(step, verbose=True, memory=".cache")
