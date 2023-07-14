@@ -3,24 +3,6 @@ from utils import *
 import pandas as pd
 import matplotlib as mpl
 
-mpl.use("pgf")
-import matplotlib.pyplot as plt
-
-plt.rcParams.update(
-    {
-        "font.family": "serif",  # use serif/main font for text elements
-        "text.usetex": True,  # use inline math for ticks
-        "pgf.texsystem": "pdflatex",
-        "pgf.preamble": "\n".join(
-            [
-                r"\usepackage[utf8x]{inputenc}",
-                r"\usepackage[T1]{fontenc}",
-                r"\usepackage{cmbright}",
-            ]
-        ),
-    }
-)
-
 
 def rose_plot(ax, y, p):
     ax.bar(np.radians(y.theta), 0.98, width=np.pi / 4, bottom=y.idh, color=y.color)
