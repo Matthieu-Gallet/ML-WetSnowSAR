@@ -1,5 +1,8 @@
 import numpy as np
 from sklearn.pipeline import Pipeline
+import os
+
+from files_management import load_h5
 
 
 def random_shuffle(X, y, rng=-1):
@@ -207,3 +210,19 @@ def parser_pipeline(dict_parameter, idx):
             ]
         step.append((name_methode, estim))
     return Pipeline(step, verbose=True, memory=".cache")
+
+
+def load_train(i_path, bands_max, balanced, shffle=True):
+    X_train, Y_train = load_h5(os.path.join(i_path, "data_train.h5"))
+    X_train = X_train[:, :, :, bands_max]
+    if balanced:
+        X_train, Y_train = balance_dataset(X_train, Y_train, shuffle=shffle)
+    return X_train, Y_train
+
+
+def load_test(i_path, bands_max, balanced, shffle=True):
+    X_test, Y_test = load_h5(os.path.join(i_path, "data_test.h5"))
+    X_test = X_test[:, :, :, bands_max]
+    if balanced:
+        X_test, Y_test = balance_dataset(X_test, Y_test, shuffle=shffle)
+    return X_test, Y_test
