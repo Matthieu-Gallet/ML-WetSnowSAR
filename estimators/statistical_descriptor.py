@@ -1,8 +1,16 @@
-from sklearn.base import BaseEstimator, TransformerMixin
+import sys, os
+
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(parent_dir)
+
+from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin
+from sklearn.metrics import accuracy_score, f1_score
 from joblib import Parallel, delayed
 from scipy.stats import kurtosis, skew
 from tqdm import tqdm
 import numpy as np
+
+from utils.metrics import BAROC, FRCROC, BF1ROC
 
 
 def optimal_bins(data):
@@ -113,7 +121,7 @@ class Stats_SAR(BaseEstimator, TransformerMixin):
         return np.array(self.vectorize_)
 
 
-class Hist_SAR(BaseEstimator, TransformerMixin):
+class Hist_SAR(BaseEstimator, ClassifierMixin):
     """Tranform a tensor or a list of matrix into a vector array of the
     histogram of each band.
     """
@@ -139,3 +147,56 @@ class Hist_SAR(BaseEstimator, TransformerMixin):
             delayed(calcul_hist)(x, self.n_bands, self.nbins) for x in tqdm(X_t)
         )
         return np.array(self.vectorize_)
+
+
+class Nagler_WS(BaseEstimator, ClassifierMixin):
+    """Compute the wet snow prediction using an learning adaptive threshold of type Nagler
+    This is done by simply computing the mean of the ratio VV with a snow free reference
+    """
+
+    def __init__(self, bands=6, threshold_type="FPR", FPR_rate=0.05) -> None:
+        super().__init__()
+        self.bands = bands
+        self.threshold_type = threshold_type
+        self.FPR_rate = FPR_rate
+        self.success = False
+
+    def fit(self, X, y=None):
+        self.y_train = y
+        self.ypred_train = 1 - X.mean(axis=(1, 2))[:, self.bands]
+        if self.threshold_type == "FPR":
+            _, self.threshold = FRCROC(self.y_train, self.ypred_train, self.FPR_rate)
+            self.success = True
+        elif self.threshold_type == "BAROC":
+            _, self.threshold = BAROC(self.y_train, self.ypred_train)
+            self.success = True
+        elif self.threshold_type == "BF1ROC":
+            _, self.threshold = BF1ROC(self.y_train, self.ypred_train)
+            self.success = True
+        else:
+            raise ValueError("Threshold type not implemented")
+
+    def predict_proba(self, X):
+        self.X_test = X
+        self.y_proba = 1 - self.X_test.mean(axis=(1, 2))[:, self.bands]
+        return np.vstack([1 - self.y_proba, self.y_proba]).T
+
+    def predict(self, X):
+        if self.success:
+            self.predict_proba(X)
+            self.y_pred = np.where(self.y_proba > self.threshold, 1, 0)
+        else:
+            raise ValueError("Model not fitted")
+        return self.y_pred
+
+    def score(self, X, y=None):
+        if self.success:
+            y = y.ravel()
+            y = self.label_encoder.transform(y)
+            if self.y_pred is None:
+                self.predict(X)
+            self.accuracy_ = accuracy_score(y, self.y_pred)
+            self.f1_score_ = f1_score(y, self.y_pred)
+            return self.accuracy_
+        else:
+            raise ValueError("Model not fitted")

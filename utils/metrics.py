@@ -62,3 +62,36 @@ def FRCROC(y_true, y_est, rate=0.05):
     threshold_fpc = thresholds[fpr >= rate][0]
     accu_fpc = acc[fpr >= rate][0]
     return accu_fpc, threshold_fpc
+
+
+def BF1ROC(y_true, y_est):
+    """Estimate the best threshold given the best F1 score based on the ROC curve
+
+    Parameters
+    ----------
+    y_true : np.array
+        True labels
+
+    y_est : np.array
+        Estimated labels
+
+    Returns
+    -------
+    float
+        Best F1 score
+
+    float
+        Best threshold
+    """
+    fpr, tpr, thresholds = roc_curve(y_true, y_est)
+    num_pos_class = y_true[y_true > 0].sum()
+    num_neg_class = len(y_true) - num_pos_class
+    tp = tpr * num_pos_class
+    tn = (1 - fpr) * num_neg_class
+    fp = fpr * num_neg_class
+    fn = (1 - tpr) * num_pos_class
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    f1 = 2 * (precision * recall) / (precision + recall)
+    best_threshold = thresholds[np.argmax(f1)]
+    return np.amax(f1), best_threshold

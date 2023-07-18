@@ -24,7 +24,7 @@ plt.rcParams.update(
     }
 )
 
-from utils import *
+import numpy as np
 
 #############################################
 
@@ -91,5 +91,5 @@ def plot_boxplot_channel_aux(f1score):
     ax.set_ylim(0.72, 0.82)
     ax.legend([bp1["boxes"][0]], ["F1-score"], loc="lower right")
     plt.tight_layout()
-    exist_create_folder("fig/")
+    os.makedirs("../data/fig/", exist_ok=True)
     plt.savefig("fig/comp_aux.pdf", backend="pgf")

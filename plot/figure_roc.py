@@ -1,5 +1,5 @@
 ############## Imports Packages ##############
-import sys, os
+import sys, os, glob
 
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(parent_dir)
@@ -25,13 +25,14 @@ plt.rcParams.update(
 )
 
 from sklearn.metrics import roc_curve, roc_auc_score
-from utils import *
+import numpy as np
+from utils.files_management import open_pkl
+from utils.metrics import BAROC, FRCROC
 
 # #############################################
 
 
 def extract_mean_pred(dtrain):
-    bckp_metric = {}
     y_true = []
     y_est = []
     for folds in dtrain.keys():
@@ -40,18 +41,8 @@ def extract_mean_pred(dtrain):
         y_true.extend(a)
         y_est.extend(b)
 
-    fpr, tpr, thresholds = roc_curve(y_true, y_est)
-    num_pos_class = a[a > 0].sum()
-    num_neg_class = len(a) - num_pos_class
-    bckp_metric[folds] = {
-        "tpr": tpr,
-        "fpr": fpr,
-        "thresholds": thresholds,
-        "num_pos_class": num_pos_class,
-        "num_neg_class": num_neg_class,
-    }
-    am, tm = best_threshold_accuracy_ROC(bckp_metric[folds])
-    ac, tc = best_threshold_FPRc_ROC(bckp_metric[folds], rate=0.05)
+    am, tm = BAROC(y_true, y_est)
+    ac, tc = FRCROC(y_true, y_est, rate=0.05)
     # print(np.min(y_est), np.max(y_est))
     return [am, tm], [ac, tc], y_true, y_est
 
@@ -127,7 +118,9 @@ def prepare_ROC(in_path):
         print("Nagler VV threshold constant FPR dB: ", thcon)
         thcon2 = (1 - dic_test["Nagler_VH"]["thresh_con"]) * (vh[1] - vh[0]) + vh[0]
         print("Nagler VH threshold constant FPR dB: ", thcon2)
-        with open(in_path + f"info{basename(glob.glob(nagler_path)[0])}.txt", "w") as f:
+        with open(
+            in_path + f"info{os.path.basename(glob.glob(nagler_path)[0])}.txt", "w"
+        ) as f:
             f.write(f"Nagler VV threshold max accuracy dB: {thmax}\n")
             f.write(f"Nagler VH threshold max accuracy dB: {thmax2}\n")
             f.write(f"Nagler VV threshold constant FPR dB: {thcon}\n")
@@ -310,5 +303,34 @@ def plot_roc_multi(dic_test, name):
     ax[1].set_ylim(0, 1)
     ax[1].legend(loc="lower right", fontsize=14)
     plt.tight_layout()
-    exist_create_folder("fig")
+    os.makedirs("../data/fig/", exist_ok=True)
     plt.savefig(f"fig/{name}.pdf", backend="pgf")
+
+
+def ROC_plot(y, path_save):
+    bckp_metric = {}
+    f, ax = plt.subplots(1, figsize=(12, 12))
+    ax.plot([0, 1], [0, 1], "--", color="black")
+    for i in y.keys():
+        a = y[i]["y_true"]
+        b = y[i]["y_est"]
+        auc_score = roc_auc_score(a, b)
+        fpr, tpr, thresholds = roc_curve(a, b)
+        num_pos_class = a[a > 0].sum()
+        num_neg_class = len(a) - num_pos_class
+        methode = i.split("_")[0]
+        bckp_metric[methode] = {
+            "tpr": tpr,
+            "fpr": fpr,
+            "thresholds": thresholds,
+            "num_pos_class": num_pos_class,
+            "num_neg_class": num_neg_class,
+        }
+        ax.plot(fpr, tpr, label=f"{i} - ROC curve (area = %0.2f)" % auc_score)
+        ax.set_xlabel("False Positive Rate")
+        ax.set_ylabel("True Positive Rate")
+        ax.legend()
+    plt.tight_layout()
+    os.makedirs("../data/fig/", exist_ok=True)
+    outd = os.path.join(path_save, "ROC.pdf")
+    plt.savefig(outd, backend="pgf")

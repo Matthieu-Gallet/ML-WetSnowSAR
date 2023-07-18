@@ -1,9 +1,11 @@
 seed : 42
 out_dir : "../results/comp_algos"
 data_path : "../dataset_/final_E4/"
-bands_max :
-    - 0 
-    - 1
+
+BANDS_MAX:
+   "a":
+     - 0
+     - 1
 
 import : 
     - "from sklearn.svm import SVC"

@@ -7,6 +7,7 @@ sys.path.append(parent_dir)
 import matplotlib as mpl
 
 mpl.use("pgf")
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
 plt.rcParams.update(
@@ -24,18 +25,17 @@ plt.rcParams.update(
     }
 )
 
-from utils import *
 import pandas as pd
-import matplotlib.dates as mdates
+import numpy as np
+from utils.files_management import open_pkl
 
 #############################################
 
 
 def prepare_data(path):
-    label_array = open_pkl(join(path, "label_array.pkl"))
-    geo_array = open_pkl(join(path, "geo_array.pkl"))
-    name_array = open_pkl(join(path, "name_array.pkl"))
-    namdat = open_pkl(join(path, "namdat.pkl"))
+    label_array = open_pkl(os.path.join(path, "label_array.pkl"))
+    name_array = open_pkl(os.path.join(path, "name_array.pkl"))
+    namdat = open_pkl(os.path.join(path, "namdat.pkl"))
     label_array = np.array(label_array).astype(str)
     name_array = np.array(name_array).astype(str)
     namdat = np.array(namdat)
@@ -132,5 +132,5 @@ def plot_carac_wet_massif(carac, name):
         title="Massif",
         title_fontsize=12,
     )
-    exist_create_folder("fig/")
+    os.makedirs("../data/fig/", exist_ok=True)
     plt.savefig(f"fig/{name}.pdf", backend="pgf")

@@ -1,3 +1,12 @@
+############## Imports Packages ##############
+import sys, os, glob
+
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(parent_dir)
+
+import numpy as np
+from utils.files_management import open_pkl, extract_zip
+
 from figure_canaux import *
 from figure_repartition import *
 from figure_measureTN import *
@@ -6,6 +15,8 @@ from figure_roc import *
 from figure_stats import *
 from figure_diagramme import *
 from figure_repartition_wet_massif import *
+
+#############################################
 
 if __name__ == "__main__":
     figure0 = 0
@@ -36,7 +47,6 @@ if __name__ == "__main__":
             "I_p": [0, 1, 5, 6, 7],
             "J": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         }
-        # log_path = "../data/results/log_200223_12H16M08.log"
         log_path = "../data/results/log_200623_15H18M45.log"
         f = open_log(log_path)
         f1score = parse_f1(f, dicband)
@@ -51,6 +61,7 @@ if __name__ == "__main__":
     if figure1:
         print("######################## Figure 1 ########################")
         fp = "../data/results/repartition/"
+        _ = extract_zip(os.path.join(fp, "repartition.zip"), fp)
         train = [
             "BAUGES",
             "BEAUFORTAIN",
@@ -70,8 +81,8 @@ if __name__ == "__main__":
         M1 = "BELLEDONNE"
         M2 = "GRANDES-ROUSSES"
         name = "ASC_TN_2700_1800"
-        tn = open_pkl("../data/results/FC_21X22_asc_tn.pkl")
-        hs = open_pkl("../data/results/FC_21X22_asc_hs.pkl")
+        tn = open_pkl("../data/crocus/FC_21X22_asc_tn.pkl")
+        hs = open_pkl("../data/crocus/FC_21X22_asc_hs.pkl")
         plot_tn_two_massifs(M1, M2, tn, hs, name)
 
     if figure3:
@@ -79,7 +90,7 @@ if __name__ == "__main__":
         M1 = "BELLEDONNE"
         M2 = "GRANDES-ROUSSES"
         name = "ASC_LWC_2700_1800_4"
-        tel = open_pkl("../data/results/FC_21X22_asc_tel.pkl")
+        tel = open_pkl("../data/crocus/FC_21X22_asc_tel.pkl")
         plot_tel_two_massifs(M1, M2, tel, name)
 
     if figure4:
@@ -90,8 +101,8 @@ if __name__ == "__main__":
         except:
             thresholds = np.logspace(np.log10(0.1), np.log10(50), 50)
             save = True
-            tel = open_pkl("../data/results/FC_21X22_asc_tel.pkl")
-            ts = open_pkl("../data/results/FC_21X22_asc_tn.pkl")
+            tel = open_pkl("../data/crocus/FC_21X22_asc_tel.pkl")
+            ts = open_pkl("../data/crocus/FC_21X22_asc_tn.pkl")
             corr_spear = correlation_tel_tmin(tel, ts, thresholds, save)
         print(
             "Max correlation: ",
@@ -103,16 +114,17 @@ if __name__ == "__main__":
 
     if figure5:
         print("######################## Figure 5 ########################")
-        # X_train, Y_train = open_pkl("../data/results/bal_train.pkl")
-        # X_test, Y_test = open_pkl("../data/results/bal_test.pkl")
+        # limitation to the balanced dataset
+        X_train, Y_train = open_pkl("../data/results/bal_train.pkl")
+        X_test, Y_test = open_pkl("../data/results/bal_test.pkl")
 
-        # print(X_train.shape, Y_train.shape, X_test.shape, Y_test.shape)
-        # X_test = X_test[:, :, :, [0, 1, 6, 7]]
-        # X_train = X_train[:, :, :, [0, 1, 6, 7]]
+        print(X_train.shape, Y_train.shape, X_test.shape, Y_test.shape)
+        X_test = X_test[:, :, :, [0, 1, 6, 7]]
+        X_train = X_train[:, :, :, [0, 1, 6, 7]]
 
-        # x = np.concatenate((X_train, X_test), axis=0)
-        # y = np.concatenate((Y_train, Y_test), axis=0)
-        x, y = open_pkl("../data/results/xy_un.pkl")
+        x = np.concatenate((X_train, X_test), axis=0)
+        y = np.concatenate((Y_train, Y_test), axis=0)
+        # x, y = open_pkl("../data/results/xy_un.pkl")  # => load h5
         canal = ["VV", "VH", "R_VV", "R_VH"]
 
         idx = y == "wet"
@@ -165,10 +177,11 @@ if __name__ == "__main__":
         print("######################## Figure 8 ########################")
         dat = ["0118", "0330"]
         for d in dat:
-            PATH = f"../data/results/diag/*{d}*.pkl"
+            PATH = f"../data/results/diagramme/*"
+            _ = extract_zip(os.path.join(PATH, "diag.zip"), PATH)
             files = glob.glob(PATH)
             if len(files) == 0:
-                path = dirname(PATH) + "/"
+                path = os.path.dirname(PATH) + "/"
                 pente = [0, 45]
                 step_alt = 100
                 step_or = 22.5 / 2
@@ -189,6 +202,6 @@ if __name__ == "__main__":
 
     if figure9:
         print("######################## Figure 9 ########################")
-        data_p = "../data/results/"
+        data_p = "../data/infos/"
         caracl = prepare_data(data_p)
         plot_carac_wet_massif(caracl, "repartition_wet_massif")

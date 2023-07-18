@@ -1,14 +1,13 @@
 seed : 42
-balanced : True
 out_dir : "../results/comp_stats"
 data_path : "../dataset_/final_E4/"
-bands_max :
-    - 0 
-    - 1
-    - 6 
-    - 7
 
-    
+BANDS_MAX:
+   "h":
+      - 0
+      - 1
+      - 6
+      - 7
     
 import : 
     - "from sklearn.neighbors import KNeighborsClassifier"

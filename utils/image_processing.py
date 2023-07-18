@@ -178,6 +178,8 @@ def scale_data(img, axes=None, no_data=-999):
         img[img == no_data] = np.nan
     if axes is None:
         axes = tuple(range(img.ndim - 1))
+    if img.ndim == 2:
+        axes = (0, 1)
     min_ = np.nanmin(img, axis=axes, keepdims=True)
     max_ = np.nanmax(img, axis=axes, keepdims=True)
     scale = max_ - min_

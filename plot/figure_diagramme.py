@@ -1,5 +1,5 @@
 ############## Imports Packages ##############
-import sys, os
+import sys, os, glob
 
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(parent_dir)
@@ -8,6 +8,7 @@ import matplotlib as mpl
 
 mpl.use("pgf")
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 
 plt.rcParams.update(
     {
@@ -24,10 +25,10 @@ plt.rcParams.update(
     }
 )
 
-from utils import *
-from matplotlib.colors import LogNorm
-
-from geo_tools import load_data, count_value_pen_ori_alti
+import numpy as np
+from utils.geo_tools import load_data, count_value_pen_ori_alti
+from utils.files_management import dump_pkl
+from utils.image_processing import scale_data
 from joblib import Parallel, delayed
 
 #############################################
@@ -79,7 +80,11 @@ def wrap_eval(
     step_alt,
     input_path,
 ):
-    name = basename(file).split("_")[0] + "_" + basename(file).split("_")[3]
+    name = (
+        os.path.basename(file).split("_")[0]
+        + "_"
+        + os.path.basename(file).split("_")[3]
+    )
     img, _ = load_data(file)
     img = np.where(img < 0, np.nan, img)
     print(img.min(), img.max())
@@ -104,7 +109,7 @@ def wrap_eval(
 def prepare_prediction(result_map):
     if np.nanmax(result_map) > 1:
         print("scale image")
-        prediction = scale_image(result_map)
+        prediction = scale_data(result_map)
     else:
         print("no scale")
         prediction = result_map
@@ -255,7 +260,7 @@ def plot_diagramme_4prod(dico, figname):
     q = fig.colorbar(dm, cax=cbar_ax2, orientation="vertical")
     q.ax.tick_params(labelsize=15)
     q.set_label("% snow cover", fontsize=20, fontweight="bold")
-    exist_create_folder("fig")
+    os.makedirs("../data/fig/", exist_ok=True)
     plt.savefig(
         f"fig/{figname}.pdf", bbox_inches="tight", pad_inches=0.1, backend="pgf"
     )

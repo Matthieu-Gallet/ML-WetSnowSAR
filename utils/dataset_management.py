@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import LabelEncoder
 import os
 
 from files_management import load_h5
@@ -212,17 +213,86 @@ def parser_pipeline(dict_parameter, idx):
     return Pipeline(step, verbose=True, memory=".cache")
 
 
-def load_train(i_path, bands_max, balanced, shffle=True):
+def load_train(i_path, bands_max, balanced, shffle=True, encode=True):
+    """Load a hdf5 file containing the training dataset
+
+    Parameters
+    ----------
+    i_path : str
+        Path to the hdf5 file with name "data_train.h5"
+
+    bands_max : list
+        List of bands to keep in the dataset
+
+    balanced : bool
+        If True, the dataset is balanced
+
+    shffle : bool, optional
+        If True, the dataset is shuffled (rng 42), by default True
+
+    encode : bool, optional
+        If True, the labels are encoded, by default True
+
+    Returns
+    -------
+    numpy array
+        Dataset of images in float32, shape (n_samples, height, width, n_bands)
+
+    numpy array
+        Dataset of labels in string, shape (n_samples,)
+
+    sklearn.preprocessing.LabelEncoder
+        Encoder used to encode the labels
+    """
+
     X_train, Y_train = load_h5(os.path.join(i_path, "data_train.h5"))
-    X_train = X_train[:, :, :, bands_max]
+    if bands_max != -1:
+        X_train = X_train[:, :, :, bands_max]
     if balanced:
         X_train, Y_train = balance_dataset(X_train, Y_train, shuffle=shffle)
-    return X_train, Y_train
+    if encode:
+        encoder = LabelEncoder()
+        encoder.fit(Y_train)
+        Y_train = encoder.transform(Y_train)
+    else:
+        encoder = None
+    return X_train, Y_train, encoder
 
 
-def load_test(i_path, bands_max, balanced, shffle=True):
+def load_test(i_path, bands_max, balanced, shffle=True, encoder=None):
+    """Load a hdf5 file containing the testing dataset
+
+    Parameters
+    ----------
+    i_path : str
+        Path to the hdf5 file with name "data_test.h5"
+
+    bands_max : list
+        List of bands to keep in the dataset
+
+    balanced : bool
+        If True, the dataset is balanced
+
+    shffle : bool, optional
+        If True, the dataset is shuffled (rng 42), by default True
+
+    encoder : sklearn.preprocessing.LabelEncoder, optional
+        Encoder used to encode the labels, by default None
+        The encoder must be fitted before ie using the `load_train` function
+
+    Returns
+    -------
+    numpy array
+        Dataset of images in float32, shape (n_samples, height, width, n_bands)
+
+    numpy array
+        Dataset of labels in string, shape (n_samples,)
+    """
+
     X_test, Y_test = load_h5(os.path.join(i_path, "data_test.h5"))
     X_test = X_test[:, :, :, bands_max]
     if balanced:
         X_test, Y_test = balance_dataset(X_test, Y_test, shuffle=shffle)
+    if encoder is not None:
+        Y_test = encoder.transform(Y_test)
     return X_test, Y_test

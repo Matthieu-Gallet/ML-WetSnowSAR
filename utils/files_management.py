@@ -1,12 +1,13 @@
-import re, os, h5py, logging, pickle
+import re, os, h5py, logging, pickle, shutil, zipfile
 import numpy as np
 import pandas as pd
-
+from yaml import safe_load
 from datetime import datetime
 from sklearn.metrics import (
     f1_score,
     accuracy_score,
     confusion_matrix,
+    cohen_kappa_score,
 )
 
 
@@ -96,7 +97,7 @@ def clean_log(log):
     return result
 
 
-def write_report(path_log, path_report):
+def write_report(path_log, path_report, begin_line=0):
     """Write a txt report from a log file (.log)
 
     Parameters
@@ -107,17 +108,23 @@ def write_report(path_log, path_report):
     path_report : str
         Path to the report file
 
+    begin_line : int, optional
+        Line number to start the report, by default 0
+
     Returns
     -------
     list
         List of lines in the log file without useless information
 
+    int
+        Number of lines in the log file
+
     """
-    op = open_log_file(path_log)
+    op = open_log_file(path_log)[begin_line:]
     result = clean_log(op)
     with open(path_report, "w") as f:
         f.writelines(result)
-    return result
+    return result, len(op)
 
 
 def report_metric_from_log(dic, logg):
@@ -142,8 +149,10 @@ def report_metric_from_log(dic, logg):
         logg.info(f"-------- Model : {i} --------")
         f1 = dic[i]["f1"]
         acc = dic[i]["acc"]
+        kap = dic[i]["kappa"]
         logg.info(f"f1 : {np.mean(f1)} +/- {np.std(f1)}")
         logg.info(f"acc : {np.mean(acc)} +/- {np.std(acc)}")
+        logg.info(f"kappa : {np.mean(kap)} +/- {np.std(kap)}")
     logg.info(f"======== End report ========")
     return logg
 
@@ -177,7 +186,10 @@ def report_prediction(y_true, y_pred, le, logg):
     float
         accuracy score
 
+    float
+        kappa score
     """
+
     logg.info("----------- REPORT -----------")
     if y_pred.shape[1] > 1:
         y_true = y_true.argmax(axis=1)
@@ -198,10 +210,11 @@ def report_prediction(y_true, y_pred, le, logg):
     logg.info(cfm.to_string())
     f1 = 100 * f1_score(y_true, y_pred, average="macro").round(5)
     acc = 100 * accuracy_score(y_true, y_pred).round(5)
+    kappa = 100 * cohen_kappa_score(y_true, y_pred).round(5)
     logg.info(f"f1 score : {f1}")
     logg.info(f"accuracy score : {acc}")
     logg.info("----------- END REPORT -----------")
-    return logg, f1, acc
+    return logg, f1, acc, kappa
 
 
 def init_logger(path_log):
@@ -289,3 +302,91 @@ def load_h5(filename):
         data = np.array(hf["img"][:]).astype(np.float32)
         meta = np.array(hf["label"][:]).astype(str)
     return data, meta
+
+
+def open_param_set_dir(i_path_param, out_dir):
+    """Create a directory to save the results of the model with the parameter file used.
+    The directory is named with the date and time of the execution
+
+    Parameters
+    ----------
+    i_path_param : str
+        Path to the parameter file used
+
+    out_dir : str
+        Path to the output directory
+
+    Returns
+    -------
+    str
+        Path to the directory created
+    """
+    now = datetime.now()
+    saveto = os.path.join(out_dir, "R_" + now.strftime("%d%m%y_%HH%MM%S"))
+    os.makedirs(saveto, exist_ok=True)
+    shutil.copyfile(i_path_param, os.path.join(saveto, "param.yaml"))
+    return saveto
+
+
+def load_yaml(file_name):
+    """Load a yaml file
+
+    Parameters
+    ----------
+    file_name : str
+        Path to the yaml file
+
+    Returns
+    -------
+    dict
+        Dictionary containing the parameters
+    """
+    with open(file_name, "r") as f:
+        opt = safe_load(f)
+    return opt
+
+
+def extract_zip(chemin_zip, chemin_extraction):
+    """Extract a zip file
+
+    Parameters
+    ----------
+    chemin_zip : str
+        Path to the zip file to extract
+
+    chemin_extraction : str
+        Path to the directory where the zip file will be extracted
+
+    Returns
+    -------
+    int
+        1 if the extraction is successful
+    """
+    with zipfile.ZipFile(chemin_zip, "r") as fichier_zip:
+        fichier_zip.extractall(chemin_extraction)
+    return 1
+
+
+def compresser_en_zip(chemin_dossier, chemin_zip):
+    """Compress a directory in a zip file
+
+    Parameters
+    ----------
+    chemin_dossier : str
+        Path to the directory to compress
+
+    chemin_zip : str
+        Path to the zip file to create
+
+    Returns
+    -------
+    int
+        1 if the compression is successful
+    """
+    with zipfile.ZipFile(chemin_zip, "w", zipfile.ZIP_DEFLATED) as fichier_zip:
+        for dossier_actuel, sous_dossiers, fichiers in os.walk(chemin_dossier):
+            for fichier in fichiers:
+                chemin_complet = os.path.join(dossier_actuel, fichier)
+                chemin_rel = os.path.relpath(chemin_complet, chemin_dossier)
+                fichier_zip.write(chemin_complet, chemin_rel)
+    return 1

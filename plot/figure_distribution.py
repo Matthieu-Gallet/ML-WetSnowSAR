@@ -93,5 +93,5 @@ def plot_hist2d(value, canal, idx, dyn, name):
     new_ax = f.add_axes([0.91, 0.2, 0.01, 0.6])
     plt.colorbar(w[3], cax=new_ax)
     # plt.tight_layout()
-    exist_create_folder("fig")
+    os.makedirs("../data/fig/", exist_ok=True)
     plt.savefig(f"fig/{name}.pdf", backend="pgf", dpi=150)

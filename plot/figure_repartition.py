@@ -1,5 +1,6 @@
 ############## Imports Packages ##############
-import sys, os
+import sys, os, glob
+from tqdm import tqdm
 
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(parent_dir)
@@ -24,10 +25,11 @@ plt.rcParams.update(
     }
 )
 
-from geo_tools import *
-from utils import *
+
 import pandas as pd
 import matplotlib as mpl
+import numpy as np
+from utils.geo_tools import load_data
 
 ###############################################
 
@@ -98,7 +100,7 @@ def slope_full_rose(name, df_train, borne, cb):
         )
         cbar.ax.tick_params(labelsize=2 * 5)
         cbar.set_label(label="Area km$^2$", fontsize=2 * 6)
-    exist_create_folder("fig")
+    os.makedirs("../data/fig/", exist_ok=True)
     plt.savefig(f"fig/{name}.pdf", backend="pgf")
 
 
@@ -192,7 +194,9 @@ def get_stats_massif(path, names_massif):
     return class_massf
 
 
-def extract_topo_dataset(fp, train, test):
+def extract_topo_dataset(
+    fp, train, test
+):  # => if fp ==tiff donc classic et dump data sinon load panda
     names_massif = train + test
     stats = get_stats_massif(fp, names_massif)
     q = np.sum([(stats[i]) for i in train], axis=0)

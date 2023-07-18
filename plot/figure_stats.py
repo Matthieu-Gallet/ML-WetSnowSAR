@@ -23,6 +23,8 @@ plt.rcParams.update(
         ),
     }
 )
+import numpy as np
+
 #############################################
 
 
@@ -84,5 +86,5 @@ def plot_boxplot_channel(f1score, name):
     ax.set_ylim(0.55, 0.82)
     ax.legend([bp1["boxes"][0]], ["F1-score"], loc="lower right")
     plt.tight_layout()
-    exist_create_folder("fig/")
+    os.makedirs("../data/fig/", exist_ok=True)
     plt.savefig(f"fig/{name}.pdf", backend="pgf")
