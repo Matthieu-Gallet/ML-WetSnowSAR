@@ -1,5 +1,33 @@
+############## Imports Packages ##############
+import sys, os
+
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(parent_dir)
+
+import matplotlib as mpl
+
+mpl.use("pgf")
+import matplotlib.pyplot as plt
+
+plt.rcParams.update(
+    {
+        "font.family": "serif",  # use serif/main font for text elements
+        "text.usetex": True,  # use inline math for ticks
+        "pgf.texsystem": "pdflatex",
+        "pgf.preamble": "\n".join(
+            [
+                r"\usepackage[utf8x]{inputenc}",
+                r"\usepackage[T1]{fontenc}",
+                r"\usepackage{cmbright}",
+            ]
+        ),
+    }
+)
+
 from sklearn.metrics import roc_curve, roc_auc_score
 from utils import *
+
+# #############################################
 
 
 def extract_mean_pred(dtrain):
@@ -24,7 +52,7 @@ def extract_mean_pred(dtrain):
     }
     am, tm = best_threshold_accuracy_ROC(bckp_metric[folds])
     ac, tc = best_threshold_FPRc_ROC(bckp_metric[folds], rate=0.05)
-    #print(np.min(y_est), np.max(y_est))
+    # print(np.min(y_est), np.max(y_est))
     return [am, tm], [ac, tc], y_true, y_est
 
 
@@ -67,7 +95,7 @@ def prepare_ROC(in_path):
 
     [am, tm], [ac, tc], y_true, y_est = extract_mean_pred(nagler_VV)
     print(am, tm)
-    print(ac,tc)
+    print(ac, tc)
     dic_test["Nagler_VV"] = {
         "y_true": y_true,
         "y_est": y_est,
@@ -83,7 +111,7 @@ def prepare_ROC(in_path):
         "thresh_con": tc,
     }
     print(am, tm)
-    print(ac,tc)
+    print(ac, tc)
     try:
         stat = open_pkl(in_path + "stat.pkl")
         vvha = np.array(stat["max"])[:, [6, 7]]
@@ -91,13 +119,13 @@ def prepare_ROC(in_path):
         vh = vvhi[vvhi[:, 1] > -998, 1].min(), vvha[:, 1].max()
         vv = vvhi[vvhi[:, 0] > -998, 0].min(), vvha[:, 0].max()
         print("VV min max: ", vv, "VH min max: ", vh)
-        thmax = (1- dic_test["Nagler_VV"]["thresh_max"]) * (vv[1] - vv[0]) + vv[0]
+        thmax = (1 - dic_test["Nagler_VV"]["thresh_max"]) * (vv[1] - vv[0]) + vv[0]
         print("Nagler VV threshold max accuracy dB: ", thmax)
-        thmax2 = (1- dic_test["Nagler_VH"]["thresh_max"]) * (vh[1] - vh[0]) + vh[0]
+        thmax2 = (1 - dic_test["Nagler_VH"]["thresh_max"]) * (vh[1] - vh[0]) + vh[0]
         print("Nagler VH threshold max accuracy dB: ", thmax2)
-        thcon = (1- dic_test["Nagler_VV"]["thresh_con"]) * (vv[1] - vv[0]) + vv[0]
+        thcon = (1 - dic_test["Nagler_VV"]["thresh_con"]) * (vv[1] - vv[0]) + vv[0]
         print("Nagler VV threshold constant FPR dB: ", thcon)
-        thcon2 = (1- dic_test["Nagler_VH"]["thresh_con"]) * (vh[1] - vh[0]) + vh[0]
+        thcon2 = (1 - dic_test["Nagler_VH"]["thresh_con"]) * (vh[1] - vh[0]) + vh[0]
         print("Nagler VH threshold constant FPR dB: ", thcon2)
         with open(in_path + f"info{basename(glob.glob(nagler_path)[0])}.txt", "w") as f:
             f.write(f"Nagler VV threshold max accuracy dB: {thmax}\n")

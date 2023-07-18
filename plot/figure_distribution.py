@@ -1,9 +1,37 @@
+############## Imports Packages ##############
+import sys, os
+
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(parent_dir)
+
+import matplotlib as mpl
+
+mpl.use("pgf")
+import matplotlib.pyplot as plt
+
+plt.rcParams.update(
+    {
+        "font.family": "serif",  # use serif/main font for text elements
+        "text.usetex": True,  # use inline math for ticks
+        "pgf.texsystem": "pdflatex",
+        "pgf.preamble": "\n".join(
+            [
+                r"\usepackage[utf8x]{inputenc}",
+                r"\usepackage[T1]{fontenc}",
+                r"\usepackage{cmbright}",
+            ]
+        ),
+    }
+)
+
 from utils import *
 import itertools
 import matplotlib.patches as mpatches
 from matplotlib.colors import LogNorm
 from matplotlib.offsetbox import AnchoredText
 from sklearn.utils import shuffle
+
+#############################################
 
 
 def plot_hist2d(value, canal, idx, dyn, name):

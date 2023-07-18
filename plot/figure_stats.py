@@ -1,4 +1,29 @@
-from utils import *
+############## Imports Packages ##############
+import sys, os
+
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(parent_dir)
+
+import matplotlib as mpl
+
+mpl.use("pgf")
+import matplotlib.pyplot as plt
+
+plt.rcParams.update(
+    {
+        "font.family": "serif",  # use serif/main font for text elements
+        "text.usetex": True,  # use inline math for ticks
+        "pgf.texsystem": "pdflatex",
+        "pgf.preamble": "\n".join(
+            [
+                r"\usepackage[utf8x]{inputenc}",
+                r"\usepackage[T1]{fontenc}",
+                r"\usepackage{cmbright}",
+            ]
+        ),
+    }
+)
+#############################################
 
 
 def open_log(log_path):
@@ -22,22 +47,22 @@ def sort_dic(dic):
     return {k: dic[k] for k in sorted(dic)}
 
 
-def parse_f1_score_log(f,dicband):
-    f1_score={"M": [], "N": [], "O": [], "L": []}
+def parse_f1_score_log(f, dicband):
+    f1_score = {"M": [], "N": [], "O": [], "L": []}
     for i in f:
         try:
             id_stat = i.split("_")[-3]
         except:
-            id_stat =""
-        idx = find_band(dicband,id_stat)
-        if idx!=None:
+            id_stat = ""
+        idx = find_band(dicband, id_stat)
+        if idx != None:
             if "F1 score" in i:
                 f1 = np.float64(i.split("test ")[1][:-1])
                 f1_score[idx].append(f1)
     return f1_score
 
 
-def plot_boxplot_channel(f1score,name):
+def plot_boxplot_channel(f1score, name):
     f, ax = plt.subplots(1, 1, figsize=(2 * 8.5 / 2.54, 2 * 4 / 2.54))
     t = list(f1score.keys())
     x = list(f1score.values())

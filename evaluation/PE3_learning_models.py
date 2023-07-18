@@ -1,13 +1,15 @@
-from old.ml_manage.display import *
-from utils import *
+import sys, os, time, shutil
+import numpy as np
 
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(parent_dir)
 
 from sklearn.metrics import cohen_kappa_score, accuracy_score, f1_score
 from sklearn.preprocessing import LabelEncoder
-
-import os, time, shutil
 from datetime import datetime
-import numpy as np
+
+from utils.dataset_management import load_train, load_test
+from utils.files_management import load_yaml, dump_pkl, init_logger
 
 
 def open_param_set_dir(i_path_param, out_dir):

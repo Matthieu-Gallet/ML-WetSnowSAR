@@ -1,6 +1,4 @@
-from osgeo_utils import gdal_merge
 from osgeo import gdal
-import subprocess
 import numpy as np
 import os
 

@@ -1,23 +1,3 @@
-import matplotlib as mpl
-
-mpl.use("pgf")
-import matplotlib.pyplot as plt
-
-plt.rcParams.update(
-    {
-        "font.family": "serif",  # use serif/main font for text elements
-        "text.usetex": True,  # use inline math for ticks
-        "pgf.texsystem": "pdflatex",
-        "pgf.preamble": "\n".join(
-            [
-                r"\usepackage[utf8x]{inputenc}",
-                r"\usepackage[T1]{fontenc}",
-                r"\usepackage{cmbright}",
-            ]
-        ),
-    }
-)
-
 from figure_canaux import *
 from figure_repartition import *
 from figure_measureTN import *
